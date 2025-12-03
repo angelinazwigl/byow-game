@@ -3,10 +3,13 @@ package core;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Out;
 import edu.princeton.cs.algs4.StdDraw;
+import tileengine.TERenderer;
 import tileengine.TETile;
 import tileengine.Tileset;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class Menu {
@@ -131,6 +134,150 @@ public class Menu {
         World.createWorld(seed);
         moveCharacter();
     }
+    private void encounterGame() {
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(Color.WHITE);
+        StdDraw.text(35, 30, "Catch Some Waves");
+        StdDraw.show();
+        StdDraw.pause(1500);
+
+        int gameWidth = 20;
+        int gameHeight = 20;
+
+        TETile[][] miniWorld = new TETile[World.WIDTH][World.HEIGHT];
+        for (int x = 0; x < World.WIDTH; x++) {
+            for (int y = 0; y < World.HEIGHT; y++) {
+                miniWorld[x][y] = Tileset.NOTHING;
+            }
+        }
+
+        for (int x = 0; x < gameWidth; x++) {
+            for (int y = 0; y < gameHeight; y++) {
+                if (x == 0 || y == 0 || x == gameWidth - 1 || y == gameHeight - 1) {
+                    miniWorld[x][y] = Tileset.WALL;
+                } else {
+                    miniWorld[x][y] = Tileset.FLOWER;
+                }
+            }
+        }
+
+        //avatar
+        int startingX = 1 + RANDOM.nextInt(gameWidth - 2);
+        int startingY = 1 + RANDOM.nextInt(gameHeight - 2);
+        miniWorld[startingX][startingY] = Tileset.AVATAR;
+
+        //make waves
+        int numWaves = 0;
+        List<Coin> waves = new ArrayList<>();
+
+        while (numWaves != 2) {
+            int waveX = 1 + RANDOM.nextInt(gameWidth - 2);
+            int waveY = 1 + RANDOM.nextInt(gameHeight - 2);
+            if (miniWorld[waveX][waveY] == Tileset.FLOWER) {
+                miniWorld[waveX][waveY] = Tileset.WATER;
+                Coin wavePos = new Coin(waveX, waveY, false);
+                waves.add(wavePos);
+                numWaves += 1;
+            }
+        }
+
+        TERenderer gameTer = new TERenderer();
+        gameTer.initialize(World.WIDTH, World.HEIGHT);
+
+        encounterLoop:
+        while (true) {
+            gameTer.renderFrame(miniWorld);
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = StdDraw.nextKeyTyped();
+                int oldX = startingX;
+                int oldY = startingY;
+                int posX = startingX;
+                int posY = startingY;
+
+                if (c == 'w' || c == 'W') {
+                    posY += 1;
+                }
+                if (c == 's' || c == 'S') {
+                    posY -= 1;
+                }
+                if (c == 'a' || c == 'A') {
+                    posX -= 1;
+                }
+                if (c == 'd' || c == 'D') {
+                    posX += 1;
+                }
+
+                if (miniWorld[posX][posY] != Tileset.WALL) {
+                    miniWorld[oldX][oldY] = Tileset.FLOWER;
+
+                    startingX = posX;
+                    startingY = posY;
+                    miniWorld[posX][posY] = Tileset.AVATAR;
+                } else {
+                    posX = oldX;
+                    posY = oldY;
+                }
+                for (Coin wavePos : waves) {
+                    if (!wavePos.collected && posX == wavePos.x && posY == wavePos.y) {
+                        wavePos.collected = true;
+                    }
+                }
+                for (Coin wavePos : waves) {
+                    if (!wavePos.collected) {
+                        boolean waveMoved = false;
+                        int wavePosX = wavePos.x;
+                        int wavePosY = wavePos.y;
+                        int waveOldX = wavePos.x;
+                        int waveOldY = wavePos.y;
+                        waveLoop:
+                        while (!waveMoved) {
+                            int waveDirection = RANDOM.nextInt(8);
+                            if (waveDirection == 0) {
+                                wavePosY += 1;
+                            } else if (waveDirection == 1) {
+                                wavePosY -= 1;
+                            } else if (waveDirection == 2) {
+                                wavePosX -= 1;
+                            } else if (waveDirection == 4) {
+                                wavePosX += 1;
+                            } else {
+                                break waveLoop;
+                            }
+
+                            if (miniWorld[wavePosX][wavePosY] != Tileset.WALL &&
+                                    miniWorld[wavePosX][wavePosY] != Tileset.AVATAR &&
+                                    miniWorld[wavePosX][wavePosY] != Tileset.WATER) {
+                                miniWorld[waveOldX][waveOldY] = Tileset.FLOWER;
+                                miniWorld[wavePosX][wavePosY] = Tileset.WATER;
+                                waveMoved = true;
+                                wavePos.x = wavePosX;
+                                wavePos.y = wavePosY;
+                            } else {
+                                wavePosX = waveOldX;
+                                wavePosY = waveOldY;
+                            }
+                        }
+                    }
+                }
+                boolean allWavesCollected = true;
+                for (Coin hello : waves) {
+                    if (hello.collected == false) {
+                        allWavesCollected = false;
+                        break;
+                    }
+                }
+                if (allWavesCollected) {
+                    break encounterLoop;
+                }
+            }
+        }
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(Color.WHITE);
+        StdDraw.text(35, 30, "You caught the waves!");
+        StdDraw.show();
+        StdDraw.pause(1500);
+        World.ter.renderFrame(World.world);
+    }
 
     private void moveCharacter() {
         boolean colon = false;
@@ -179,19 +326,19 @@ public class Menu {
                     }
                     for (Room r : World.rooms) {
                         if (!r.playedGame && posX == r.encounterX && posY == r.encounterY) {
-                            encounters += 1;
-                            int randomNum = RANDOM.nextInt(5);
-                                if (randomNum == 0) {
-                                    rockPaperScissors();
-                                } else if (randomNum == 1) {
-                                    flipACoin();
-                                } else if (randomNum == 2) {
-                                    rollADie();
-                                } else if (randomNum == 3) {
-                                    additionGame();
-                                } else {
-                                    multiplicationGame();
-                                }
+//                            int randomNum = RANDOM.nextInt(5);
+//                                if (randomNum == 0) {
+//                                    rockPaperScissors();
+//                                } else if (randomNum == 1) {
+//                                    flipACoin();
+//                                } else if (randomNum == 2) {
+//                                    rollADie();
+//                                } else if (randomNum == 3) {
+//                                    additionGame();
+//                                } else {
+//                                    multiplicationGame();
+//                                }
+                            encounterGame();
                             r.playedGame = true;
                         }
                     }
@@ -209,6 +356,11 @@ public class Menu {
                             }
                         }
                         if (allCoinsCollected) {
+                            StdDraw.clear(Color.BLACK);
+                            StdDraw.setPenColor(Color.WHITE);
+                            StdDraw.text(35, 30, "You collected all the coins! Returning to main menu");
+                            StdDraw.show();
+                            StdDraw.pause(3000);
                             Menu menu = new Menu();
                             menu.start();
                         }
