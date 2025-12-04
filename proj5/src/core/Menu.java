@@ -27,7 +27,7 @@ public class Menu {
         while (true) {
             if (c == 'N' || c == 'n') {
                 String seed = userSeed();
-                startGame(Integer.parseInt(seed));
+                startGame(Long.parseLong(seed));
             } else if (c == 'Q' || c =='q') {
                 System.exit(0);
             } else if (c == 'O' || c == 'o') {
@@ -198,7 +198,7 @@ public class Menu {
         moveCharacter();
     }
 
-    private void startGame(int seed) {
+    private void startGame(long seed) {
         World.createWorld(seed);
         moveCharacter();
     }
