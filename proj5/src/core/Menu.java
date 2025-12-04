@@ -30,8 +30,7 @@ public class Menu {
                 startGame(Integer.parseInt(seed));
             } else if (c == 'Q' || c =='q') {
                 System.exit(0);
-            }
-            else if (c == 'L' || c == 'l') {
+            } else if (c == 'O' || c == 'o') {
                 StdDraw.clear(Color.BLACK);
                 StdDraw.setPenColor(Color.WHITE);
                 StdDraw.text(35, 35, "Please Select a Game to Open");
@@ -54,11 +53,13 @@ public class Menu {
                 }
 
                 loadGame("Save" + gameLoad + ".txt");
+            } else if (c=='L' || c =='l') {
+                loadGame("Save.txt");
             }
         }
     }
 
-    private void saveGame(TETile[][] world) {
+    private void saveGameSlot(TETile[][] world) {
         String[][] worldArray = new String[World.WIDTH][World.HEIGHT];
         String text;
 
@@ -101,6 +102,31 @@ public class Menu {
                 }
             }
            out.println(worldString.toString());
+        }
+        out.close();
+    }
+
+    private void saveGameDefault(TETile[][] world) {
+        String[][] worldArray = new String[World.WIDTH][World.HEIGHT];
+        String text;
+
+        for (int ryan = 0; ryan < World.WIDTH; ryan++) {
+            for (int angelina = 0; angelina < World.HEIGHT; angelina++) {
+                text = world[ryan][angelina].description();
+                worldArray[ryan][angelina] = text;
+            }
+        }
+        Out out = new Out("Save.txt");
+
+        for (int y = 0; y < World.HEIGHT; y++) {
+            StringBuilder worldString = new StringBuilder();
+            for (int x = 0; x < World.WIDTH; x++) {
+                worldString.append(worldArray[x][y]);
+                if (x < World.WIDTH - 1) {
+                    worldString.append(" ");
+                }
+            }
+            out.println(worldString.toString());
         }
         out.close();
     }
@@ -331,7 +357,11 @@ public class Menu {
                 char c = StdDraw.nextKeyTyped();
                 if (colon) {
                     if (c == 'q' || c == 'Q') {
-                        saveGame(World.world);
+                        saveGameDefault(World.world);
+                        System.exit(0);
+                    }
+                    if (c == 'o' || c == 'O') {
+                        saveGameSlot(World.world);
                         System.exit(0);
                     }
                 } else if (c ==':') {
@@ -594,10 +624,11 @@ public class Menu {
     private void menuScreen() {
         StdDraw.clear(Color.BLACK);
         StdDraw.setPenColor(Color.WHITE);
-        StdDraw.text(35, 35, "CS61B: BYOW");
+        StdDraw.text(35, 40, "CS61B: BYOW");
 
-        StdDraw.text(35, 20, "(N) New Game");
-        StdDraw.text(35, 15, "(L) Load Game");
+        StdDraw.text(35, 25, "(N) New Game");
+        StdDraw.text(35, 20, "(L) Load Game");
+        StdDraw.text(35, 15, "(O) Old Game");
         StdDraw.text(35, 10, "(Q) Quit");
 
         StdDraw.show();
@@ -649,7 +680,8 @@ public class Menu {
             if (StdDraw.hasNextKeyTyped()) {
                 char c = StdDraw.nextKeyTyped();
                 if (c == 'N' || c == 'L' || c == 'Q'
-                || c == 'n' || c == 'l' || c == 'q') {
+                || c == 'n' || c == 'l' || c == 'q' ||
+                c == 'O' || c =='o') {
                     return c;
                 }
             }
