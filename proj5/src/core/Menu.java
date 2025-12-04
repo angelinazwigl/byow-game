@@ -32,7 +32,28 @@ public class Menu {
                 System.exit(0);
             }
             else if (c == 'L' || c == 'l') {
-                loadGame();
+                StdDraw.clear(Color.BLACK);
+                StdDraw.setPenColor(Color.WHITE);
+                StdDraw.text(35, 35, "Please Select a Game to Open");
+
+                StdDraw.text(35, 20, "(1) Slot One");
+                StdDraw.text(35, 15, "(2) Slot Two");
+                StdDraw.text(35, 10, "(3) Slot Three");
+                StdDraw.show();
+
+                char gameLoad;
+                loadLoop:
+                while (true) {
+                    if (StdDraw.hasNextKeyTyped()) {
+                        char loadC = StdDraw.nextKeyTyped();
+                        if (loadC == '1' || loadC == '2' || loadC == '3') {
+                            gameLoad = loadC;
+                            break loadLoop;
+                        }
+                    }
+                }
+
+                loadGame("Save" + gameLoad + ".txt");
             }
         }
     }
@@ -48,7 +69,28 @@ public class Menu {
             }
         }
 
-        Out out = new Out("Save.txt");
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(Color.WHITE);
+        StdDraw.text(35, 35, "Please Select a Save Slot");
+
+        StdDraw.text(35, 20, "(1) Slot One");
+        StdDraw.text(35, 15, "(2) Slot Two");
+        StdDraw.text(35, 10, "(3) Slot Three");
+        StdDraw.show();
+
+        char saveSlot;
+        saveLoop:
+        while (true) {
+            if (StdDraw.hasNextKeyTyped()) {
+                char c = StdDraw.nextKeyTyped();
+                if (c == '1' || c == '2' || c == '3') {
+                    saveSlot = c;
+                    break saveLoop;
+                }
+            }
+        }
+
+        Out out = new Out("Save" + saveSlot + ".txt");
 
         for (int y = 0; y < World.HEIGHT; y++) {
             StringBuilder worldString = new StringBuilder();
@@ -63,11 +105,11 @@ public class Menu {
         out.close();
     }
 
-    private void loadGame() {
+    private void loadGame(String file) {
         World.createWorld(1);
         int row = 0;
         int col = 0;
-        String filename = "Save.txt";
+        String filename = file;
         In in = new In(filename);
 
         while (!in.isEmpty()) {
